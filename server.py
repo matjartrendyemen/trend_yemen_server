@@ -15,7 +15,13 @@ async def scrape_product(url):
             extra_http_headers={"Accept-Language": "en-US,en;q=0.9"}
         )
         page = await context.new_page()
-        await page.goto(url, timeout=60000)
+
+        try:
+            # استخدام domcontentloaded لتفادي انهيار الصفحة
+            await page.goto(url, wait_until="domcontentloaded", timeout=60000)
+        except Exception as e:
+            await browser.close()
+            return {"error": f"تعذر تحميل الصفحة: {str(e)}"}
 
         product_name, price, image_url = None, None, None
 
@@ -51,8 +57,13 @@ async def scrape_product(url):
                 image_url = await page.get_attribute(".primary-image img", "src")
 
         except Exception as e:
+            # fallback: إرجاع جزء من الـ HTML الخام إذا فشل استخراج البيانات
+            html_content = await page.content()
             await browser.close()
-            return {"error": f"تعذر استخراج البيانات: {str(e)}"}
+            return {
+                "error": f"تعذر استخراج البيانات: {str(e)}",
+                "html_preview": html_content[:1000]  # أول 1000 حرف فقط
+            }
 
         await browser.close()
         return {
