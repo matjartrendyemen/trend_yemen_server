@@ -15,20 +15,35 @@ async def scrape_product(url):
 
         # Amazon selectors
         if "amazon." in url:
+            await page.wait_for_selector("#productTitle", timeout=60000)
             product_name = await page.text_content("#productTitle")
+
+            await page.wait_for_selector(".a-price .a-offscreen", timeout=60000)
             price = await page.text_content(".a-price .a-offscreen")
+
+            await page.wait_for_selector("#landingImage", timeout=60000)
             image_url = await page.get_attribute("#landingImage", "src")
 
         # AliExpress selectors
         elif "aliexpress." in url:
+            await page.wait_for_selector(".product-title-text", timeout=60000)
             product_name = await page.text_content(".product-title-text")
+
+            await page.wait_for_selector(".product-price-value", timeout=60000)
             price = await page.text_content(".product-price-value")
+
+            await page.wait_for_selector(".product-main-image img", timeout=60000)
             image_url = await page.get_attribute(".product-main-image img", "src")
 
         # Noon selectors
         elif "noon." in url:
+            await page.wait_for_selector(".product-title", timeout=60000)
             product_name = await page.text_content(".product-title")
+
+            await page.wait_for_selector(".selling-price", timeout=60000)
             price = await page.text_content(".selling-price")
+
+            await page.wait_for_selector(".primary-image img", timeout=60000)
             image_url = await page.get_attribute(".primary-image img", "src")
 
         await browser.close()
