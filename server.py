@@ -11,14 +11,25 @@ async def scrape_product(url):
         page = await context.new_page()
         await page.goto(url, timeout=60000)
 
-        # استخراج اسم المنتج (عادة في h1)
-        product_name = await page.text_content("h1")
+        product_name, price, image_url = None, None, None
 
-        # استخراج السعر (حسب الموقع، مثلاً class="price")
-        price = await page.text_content(".price")
+        # Amazon selectors
+        if "amazon." in url:
+            product_name = await page.text_content("#productTitle")
+            price = await page.text_content(".a-price .a-offscreen")
+            image_url = await page.get_attribute("#landingImage", "src")
 
-        # استخراج رابط الصورة (عادة في img داخل div المنتج)
-        image_url = await page.get_attribute("img", "src")
+        # AliExpress selectors
+        elif "aliexpress." in url:
+            product_name = await page.text_content(".product-title-text")
+            price = await page.text_content(".product-price-value")
+            image_url = await page.get_attribute(".product-main-image img", "src")
+
+        # Noon selectors
+        elif "noon." in url:
+            product_name = await page.text_content(".product-title")
+            price = await page.text_content(".selling-price")
+            image_url = await page.get_attribute(".primary-image img", "src")
 
         await browser.close()
         return {
